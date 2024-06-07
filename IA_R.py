@@ -10,21 +10,21 @@ from docx import Document
     # Function that uses the Whisper model to take in the audio file and transcribe it
 def transcribe_audio(audio_file_path):
     with open(audio_file_path, 'rb') as audio_file:
-        transcription = client.audio.transcriptions.create("whisper-1", audio_file)
-    return transcription['text']
+        transcription = client.audio.transcriptions.create(model="whisper-1", file=audio_file, response_format='text')
+    return transcription
 
 
     # Function which will serve as the main function of this application
 def meeting_minutes(transcription):                 # "transcription" is the text we obtained from Whisper.
     abstract_summary = abstract_summary_extraction(transcription)
     key_points = key_points_extraction(transcription)
-    action_items = action_item_extraction(transcription)
-    sentiment = sentiment_analysis(transcription)
+    #action_items = action_item_extraction(transcription)
+    #sentiment = sentiment_analysis(transcription)
     return {                                        # Passed to the four other functions
         'abstract_summary': abstract_summary,
         'key_points': key_points,
-        'action_items': action_items,
-        'sentiment': sentiment
+        #'action_items': action_items,
+        #'sentiment': sentiment
     }
 
 
@@ -32,13 +32,13 @@ def meeting_minutes(transcription):                 # "transcription" is the tex
     # to retain the most important points while avoiding unnecessary details or tangential points.
 def abstract_summary_extraction(transcription):
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o",
         temperature=0,
         messages=[          # There are many different possible ways of achieving similar results 
                             # through the process commonly referred to as prompt engineering
             {
                 "role": "system",
-                "content": "You are a highly skilled AI trained in language comprehension and summarization. I would like you to read the following text and summarize it into a concise abstract paragraph. Aim to retain the most important points, providing a coherent and readable summary that could help a person understand the main points of the discussion without needing to read the entire text. Please avoid unnecessary details or tangential points."
+                "content": "You are a highly skilled AI trained in language comprehension and summarization. I would like you to read the following text and summarize it in a text that aims to be a medical consultation note. Aim to retain the points relevant for the practice of medicine, providing a coherent and readable summary that could help another doctor understand the situation."
             },
             {
                 "role": "user",
@@ -46,13 +46,13 @@ def abstract_summary_extraction(transcription):
             }
         ]
     )
-    return completion.choices[0].message.content
+    return response.choices[0].message.content
 
 
     # Identifies and lists the main points discussed in the meeting.
 def key_points_extraction(transcription):
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-4o",
         temperature=0,
         messages=[
             {
@@ -65,7 +65,7 @@ def key_points_extraction(transcription):
             }
         ]
     )
-    return completion.choices[0].message.content
+    return response.choices[0].message.content
 
 
     # Identifies tasks, assignments, or actions agreed upon or mentioned during the meeting
@@ -84,7 +84,7 @@ def action_item_extraction(transcription):
             }
         ]
     )
-    return completion.choices[0].message.content
+    return response.choices[0].message.content
 
 
     # Analyzes the overall sentiment of the discussion. It considers the tone, 
@@ -104,7 +104,7 @@ def sentiment_analysis(transcription):
             }
         ]
     )
-    return completion.choices[0].message.content
+    return response.choices[0].message.content
 
 
     # Converts the raw text to a Word document
@@ -122,9 +122,9 @@ def save_as_docx(minutes, filename):
 
     # This code will transcribe the audio file Earningscall.wav, generates the meeting minutes, 
     # prints them, and then saves them into a Word document called meeting_minutes.docx.
-audio_file_path = "Earningscall.wav"
-transcription = transcribe_audio(audio_file_path)
-minutes = meeting_minutes(transcription)
-print(minutes)
+#audio_file_path = "audio.ogg"
+#transcription = transcribe_audio(audio_file_path)
+#minutes = meeting_minutes(transcription)
+#print(minutes)
 
-save_as_docx(minutes, 'meeting_minutes.docx')
+#save_as_docx(minutes, 'meeting_minutes.docx')
